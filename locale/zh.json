@@ -1,0 +1,18 @@
+{
+  "open": "打开",
+  "set_password": "设置密码",
+  "change_password": "更改密码",
+  "file": "文件",
+  "prev_page": "上一页",
+  "next_page": "下一页",
+  "password_prompt": "请输入PDF密码:",
+  "error": "错误",
+  "password_required": "需要密码",
+  "password_incorrect": "密码不正确",
+  "password_set_prompt": "请输入新密码:",
+  "password_set_done": "密码已设置",
+  "password_change_prompt": "请输入当前密码:",
+  "password_change_new_prompt": "请输入新密码:",
+  "password_change_done": "密码已更改",
+  "done": "完成"
+}

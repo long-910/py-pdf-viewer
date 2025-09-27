@@ -1,0 +1,18 @@
+{
+  "open": "Open",
+  "set_password": "Set Password",
+  "change_password": "Change Password",
+  "file": "File",
+  "prev_page": "Previous Page",
+  "next_page": "Next Page",
+  "password_prompt": "Enter PDF password:",
+  "error": "Error",
+  "password_required": "Password is required",
+  "password_incorrect": "Incorrect password",
+  "password_set_prompt": "Enter new password:",
+  "password_set_done": "Password has been set",
+  "password_change_prompt": "Enter current password:",
+  "password_change_new_prompt": "Enter new password:",
+  "password_change_done": "Password has been changed",
+  "done": "Done"
+}

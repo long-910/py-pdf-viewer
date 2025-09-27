@@ -1,0 +1,18 @@
+{
+  "open": "開く",
+  "set_password": "パスワード設定",
+  "change_password": "パスワード変更",
+  "file": "ファイル",
+  "prev_page": "前のページ",
+  "next_page": "次のページ",
+  "password_prompt": "PDFのパスワードを入力してください:",
+  "error": "エラー",
+  "password_required": "パスワードが必要です",
+  "password_incorrect": "パスワードが正しくありません",
+  "password_set_prompt": "新しいパスワードを入力してください:",
+  "password_set_done": "パスワードを設定しました",
+  "password_change_prompt": "現在のパスワードを入力してください:",
+  "password_change_new_prompt": "新しいパスワードを入力してください:",
+  "password_change_done": "パスワードを変更しました",
+  "done": "完了"
+}
