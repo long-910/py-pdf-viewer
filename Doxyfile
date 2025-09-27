@@ -1,0 +1,16 @@
+# Doxygen configuration file for py-pdf-viewer
+PROJECT_NAME           = "py-pdf-viewer"
+PROJECT_BRIEF          = "Multi-language PDF viewer with password management"
+OUTPUT_DIRECTORY       = docs/doxygen
+INPUT                  = main.py
+FILE_PATTERNS          = *.py
+RECURSIVE              = NO
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_METHODS  = YES
+OPTIMIZE_OUTPUT_JAVA   = YES
+JAVADOC_AUTOBRIEF      = YES
+ALIASES                = "brief=\par Brief Description:\n"
