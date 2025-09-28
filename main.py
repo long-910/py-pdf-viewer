@@ -1,11 +1,13 @@
 """
-@file main.py
-@brief Multi-language PDF viewer with password management (py-pdf-viewer)
+@file main.py.
+
+@brief Multi-language PDF viewer with password management (py-pdf-viewer).
+
 @details
     - PDF表示（GUI）
     - パスワード付きPDFの開封・設定・変更
     - 英語・日本語・中国語対応
-    - PyPDF2, PyMuPDF, Pillow, tkinter使用
+    - PyPDF2, PyMuPDF, Pillow, tkinter使用.
 """
 
 import tkinter as tk
@@ -19,16 +21,13 @@ import json
 
 class PDFViewerApp:
     """
-    @brief PDFビュワーのメインアプリケーション
-    @details GUI構築・PDF操作・多言語切替を担当
+    @brief PDFビュワーのメインアプリケーション.
+
+    @details GUI構築・PDF操作・多言語切替を担当.
     """
 
-    def __init__(self, root, lang="en"):
-        """
-        @brief コンストラクタ
-        @param root Tkinterのrootウィンドウ
-        @param lang 言語コード（"en", "ja", "zh"）
-        """
+    def __init__(self, root, lang="en", debug=False):
+        """コンストラクタ."""
         self.root = root
         self.lang = lang
         self.locale = self.load_locale(lang)
@@ -37,15 +36,19 @@ class PDFViewerApp:
         self.pdf_password = None
         self.page_images = []
         self.current_page = 0
+        self.debug = debug
         self.setup_ui()
 
+    def debug_log(self, msg):
+        """デバッグログ出力."""
+        if self.debug:
+            print(f"[DEBUG] {msg}")
+
     def load_locale(self, lang):
-        """
-        @brief ロケールファイルを読み込む
-        @param lang 言語コード
-        @return 辞書型のロケールデータ
-        """
-        locale_path = os.path.join(os.path.dirname(__file__), "locale", f"{lang}.json")
+        """ロケールファイルを読み込む."""
+        locale_path = os.path.join(
+            os.path.dirname(__file__), "locale", f"{lang}.json"
+        )
         try:
             with open(locale_path, encoding="utf-8") as f:
                 return json.load(f)
@@ -57,9 +60,7 @@ class PDFViewerApp:
                 return json.load(f)
 
     def setup_ui(self):
-        """
-        @brief GUI部品の初期化
-        """
+        """GUI部品の初期化."""
         menubar = tk.Menu(self.root)
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label=self.locale["open"], command=self.open_pdf)
@@ -87,81 +88,100 @@ class PDFViewerApp:
         self.next_btn.pack(side=tk.LEFT)
 
     def open_pdf(self):
-        """
-        @brief PDFファイルを開いて表示
-        パスワード付きPDFの場合は入力を促す
-        """
+        """PDFファイルを開いて表示する。パスワード付きPDFの場合は入力を促す."""
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if not path:
+            self.debug_log("PDFファイル選択キャンセル")
             return
         self.pdf_path = path
-        try:
-            doc = fitz.open(path)
-        except RuntimeError:
-            password = simpledialog.askstring(
-                self.locale["open"], self.locale["password_prompt"], show="*"
-            )
-            if not password:
-                messagebox.showerror(
-                    self.locale["error"], self.locale["password_required"]
-                )
-                return
+        self.debug_log(f"PDFファイル選択: {path}")
+        doc = None
+        password = None
+        while True:
             try:
-                doc = fitz.open(path, password=password)
-                self.pdf_password = password
+                if password:
+                    self.debug_log(
+                        f"パスワード指定でPDFオープン再試行: {password}"
+                    )
+                    doc = fitz.open(path, password=password)
+                else:
+                    self.debug_log("パスワードなしでPDFオープン試行")
+                    doc = fitz.open(path)
+                # ページを開いてみて暗号化エラーを検出
+                _ = doc.load_page(0)
+                self.debug_log("PDFオープン成功")
+                break
+            except (RuntimeError, ValueError):
+                self.debug_log("PDFオープン失敗: パスワード要求")
+                password = simpledialog.askstring(
+                    self.locale["open"],
+                    self.locale["password_prompt"],
+                    show="*",
+                )
+                if not password:
+                    self.debug_log("パスワード入力キャンセル")
+                    messagebox.showerror(
+                        self.locale["error"], self.locale["password_required"]
+                    )
+                    return
             except Exception:
+                self.debug_log(
+                    "PDFオープン失敗: パスワード不正またはその他エラー"
+                )
                 messagebox.showerror(
                     self.locale["error"], self.locale["password_incorrect"]
                 )
                 return
+        self.pdf_password = password
         self.page_images = []
+        self.debug_log(f"ページ数: {doc.page_count}")
         for page_num in range(doc.page_count):
+            self.debug_log(f"ページ読込: {page_num}")
             page = doc.load_page(page_num)
             pix = page.get_pixmap()
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
             self.page_images.append(img)
         self.current_page = 0
+        self.debug_log("最初のページ表示")
         self.show_page()
 
     def show_page(self):
-        """
-        @brief 現在ページのPDF画像を表示
-        """
+        """現在ページのPDF画像を表示する."""
         if not self.page_images:
+            self.debug_log("ページ画像なし")
             return
         img = self.page_images[self.current_page]
         img = img.resize((600, 800))
         self.tk_img = ImageTk.PhotoImage(img)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_img)
+        self.debug_log(f"ページ表示: {self.current_page}")
 
     def prev_page(self):
-        """
-        @brief 前のページを表示
-        """
+        """前のページを表示する."""
         if self.current_page > 0:
             self.current_page -= 1
             self.show_page()
 
     def next_page(self):
-        """
-        @brief 次のページを表示
-        """
+        """次のページを表示する."""
         if self.current_page < len(self.page_images) - 1:
             self.current_page += 1
             self.show_page()
 
     def set_password(self):
-        """
-        @brief PDFファイルに新しいパスワードを設定
-        """
+        """PDFファイルに新しいパスワードを設定する."""
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if not path:
             return
         password = simpledialog.askstring(
-            self.locale["set_password"], self.locale["password_set_prompt"], show="*"
+            self.locale["set_password"],
+            self.locale["password_set_prompt"],
+            show="*",
         )
         if not password:
-            messagebox.showerror(self.locale["error"], self.locale["password_required"])
+            messagebox.showerror(
+                self.locale["error"], self.locale["password_required"]
+            )
             return
         reader = PdfReader(path)
         writer = PdfWriter()
@@ -174,12 +194,12 @@ class PDFViewerApp:
         if out_path:
             with open(out_path, "wb") as f:
                 writer.write(f)
-            messagebox.showinfo(self.locale["done"], self.locale["password_set_done"])
+            messagebox.showinfo(
+                self.locale["done"], self.locale["password_set_done"]
+            )
 
     def change_password(self):
-        """
-        @brief PDFファイルのパスワードを変更
-        """
+        """PDFファイルのパスワードを変更する."""
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if not path:
             return
@@ -189,7 +209,9 @@ class PDFViewerApp:
             show="*",
         )
         if not old_password:
-            messagebox.showerror(self.locale["error"], self.locale["password_required"])
+            messagebox.showerror(
+                self.locale["error"], self.locale["password_required"]
+            )
             return
         reader = PdfReader(path)
         try:
@@ -205,7 +227,9 @@ class PDFViewerApp:
             show="*",
         )
         if not new_password:
-            messagebox.showerror(self.locale["error"], self.locale["password_required"])
+            messagebox.showerror(
+                self.locale["error"], self.locale["password_required"]
+            )
             return
         writer = PdfWriter()
         for page in reader.pages:
@@ -223,17 +247,18 @@ class PDFViewerApp:
 
 
 def main():
-    """
-    @brief アプリケーションのエントリポイント
-    @details コマンドライン引数で言語指定可能
-    """
+    """アプリケーションのエントリポイント。コマンドライン引数で言語指定可能."""
     import sys
 
     lang = "en"
-    if len(sys.argv) > 1 and sys.argv[1] in ["en", "ja", "zh"]:
-        lang = sys.argv[1]
+    debug = False
+    for arg in sys.argv[1:]:
+        if arg in ["en", "ja", "zh"]:
+            lang = arg
+        if arg == "--debug":
+            debug = True
     root = tk.Tk()
-    app = PDFViewerApp(root, lang=lang)
+    PDFViewerApp(root, lang=lang, debug=debug)
     root.mainloop()
 
 

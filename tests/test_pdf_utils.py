@@ -1,10 +1,12 @@
+"""PDFユーティリティのテストモジュール."""
+
 import os
 import tempfile
-import pytest
 from PyPDF2 import PdfWriter, PdfReader
 
 
 def create_sample_pdf(path):
+    """サンプルPDFを作成する."""
     writer = PdfWriter()
     writer.add_blank_page(width=72, height=72)
     with open(path, "wb") as f:
@@ -12,6 +14,7 @@ def create_sample_pdf(path):
 
 
 def test_set_password():
+    """PDFにパスワードを設定し、正しく開けるかテストする."""
     with tempfile.TemporaryDirectory() as tmpdir:
         pdf_path = os.path.join(tmpdir, "sample.pdf")
         create_sample_pdf(pdf_path)
@@ -26,11 +29,12 @@ def test_set_password():
             writer.write(f)
         # パスワードで開けるか確認
         reader2 = PdfReader(out_path)
-    result = reader2.decrypt(password)
-    assert result in [1, 2]  # PyPDF2の仕様変更対応
+        result = reader2.decrypt(password)
+        assert result in [1, 2]  # PyPDF2の仕様変更対応
 
 
 def test_change_password():
+    """PDFのパスワードを変更し、新しいパスワードで開けるかテストする."""
     with tempfile.TemporaryDirectory() as tmpdir:
         pdf_path = os.path.join(tmpdir, "sample.pdf")
         create_sample_pdf(pdf_path)
@@ -60,5 +64,3 @@ def test_change_password():
         reader3 = PdfReader(changed_path)
         result2 = reader3.decrypt(new_password)
         assert result2 in [1, 2]  # PyPDF2の仕様変更対応
-    result2 = reader3.decrypt(new_password)
-    assert result2 in [1, 2]  # PyPDF2の仕様変更対応
